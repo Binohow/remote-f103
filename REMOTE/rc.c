@@ -1,5 +1,7 @@
 #include "rc.h"
 
+__RC_Data	RC_Data;
+
 static void NVIC_Configuration(void)
 {
   NVIC_InitTypeDef NVIC_InitStructure;
@@ -51,7 +53,7 @@ void USART_Config(void)
 	// 配置硬件流控制
 	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
 	
-	// 配置工作模式，收发一起
+	// 配置工作模式，收
 	USART_InitStructure.USART_Mode = USART_Mode_Rx;
 	
 	// 完成串口的初始化配置
@@ -62,18 +64,11 @@ void USART_Config(void)
 	
 	// 使能串口接收中断
 	USART_ITConfig(DEBUG_USARTx, USART_IT_RXNE, ENABLE);	
-	
-	// 使能串口
-	USART_ITConfig(DEBUG_USARTx,USART_IT_RXNE,ENABLE);
 	USART_ITConfig(DEBUG_USARTx,USART_IT_IDLE,ENABLE);
 	
 	USART_Cmd(DEBUG_USARTx, ENABLE);	    
 }
 
-
-
-
-__RC_Data	RC_Data;
 
 static void RemoteDataProcess(volatile const uint8_t *sbus_buf, __RC_Data *rc_ctrl);
 uint8_t num=0;
@@ -87,14 +82,15 @@ void RC_Init(void)
 
 void UART4_IRQHandler(void){
 	
-	
 	if(USART_GetITStatus(UART4,USART_IT_RXNE)!= RESET){
 		
-		RC_Data.sbus_rx_buffer[num++] = UART4->DR; 
 
+		
+		RC_Data.sbus_rx_buffer[num++] = UART4->DR; 
 		
 		if(num>Sbus_rx_length-1)
 			num=0;
+		
 		USART_ClearFlag(UART4,USART_FLAG_RXNE);
 		
 	}
@@ -102,6 +98,7 @@ void UART4_IRQHandler(void){
 	{
 		UART4->SR;
 		UART4->DR;   //读两次寄存器 清空IDLE中断标志位
+		
 		
 		RemoteDataProcess(RC_Data.sbus_rx_buffer,&RC_Data);
 		
